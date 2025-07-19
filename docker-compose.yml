@@ -1,15 +1,15 @@
 version: '3.8'
 
-# VSS 生产环境 Docker Compose 配置
-# 所有配置项从环境变量读取，无硬编码值
+# VSS 标准 Docker Compose 配置
+# 每个服务独立暴露端口，适用于简单部署
 
 services:
-  # 后端生产服务
+  # 后端服务
   backend:
     build:
       context: ./VSS-backend
       dockerfile: Dockerfile
-    container_name: ${APP_NAME:-vss}-backend
+    container_name: vss-backend
     ports:
       - "${BACKEND_PORT:-3002}:${BACKEND_PORT:-3002}"
     environment:
@@ -60,7 +60,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # 前端生产服务
+  # 前端服务
   frontend:
     build:
       context: ./VSS-frontend
@@ -70,7 +70,7 @@ services:
         - VITE_APP_TITLE=${VITE_APP_TITLE:-VSS Vision Platform}
         - VITE_APP_VERSION=${VITE_APP_VERSION:-1.0.0}
         - VITE_APP_DESCRIPTION=${VITE_APP_DESCRIPTION:-VSS Vision Platform}
-    container_name: ${APP_NAME:-vss}-frontend
+    container_name: vss-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:${NGINX_PORT:-80}"
     environment:
@@ -97,7 +97,7 @@ services:
   # 生产数据库 (可选，取决于 DB_TYPE)
   database:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
-    container_name: ${APP_NAME:-vss}-database
+    container_name: vss-database
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     environment:
@@ -122,7 +122,7 @@ services:
   # Redis 缓存 (可选)
   redis:
     image: redis:${REDIS_VERSION:-7}-alpine
-    container_name: ${APP_NAME:-vss}-redis
+    container_name: vss-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD:-redis_password}"
@@ -155,38 +155,3 @@ networks:
   vss-network:
     name: ${DOCKER_NETWORK:-vss-network}
     driver: bridge
-    networks:
-      - ${DOCKER_NETWORK:-vss-network}
-    restart: unless-stopped
-    environment:
-      - REACT_APP_API_URL=http://localhost:${BACKEND_PORT:-3002}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${NGINX_PORT:-80}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # 数据库服务（生产环境可选）
-  database:
-    image: postgres:15-alpine
-    container_name: vss-database
-    environment:
-      POSTGRES_DB: ${DB_NAME:-vss_db}
-      POSTGRES_USER: ${DB_USERNAME:-vss_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-vss_password}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
-    networks:
-      - ${DOCKER_NETWORK:-vss-network}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-vss_user} -d ${DB_NAME:-vss_db}"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    profiles:
-      - with-db
