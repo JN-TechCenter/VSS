@@ -1,0 +1,22 @@
+# VSS项目忽略文件
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+
+# 子模块的依赖和构建产物由各自的.gitignore管理
+# 这里只忽略主项目级别的文件
