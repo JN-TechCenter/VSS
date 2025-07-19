@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # 后端开发服务
+  backend-dev:
+    build:
+      context: ./VSS-backend
+      dockerfile: Dockerfile.dev
+    container_name: vss-backend-dev
+    ports:
+      - "${BACKEND_PORT:-3003}:${BACKEND_PORT:-3003}"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=${BACKEND_PORT:-3003}
+      - DB_TYPE=${DB_TYPE:-h2}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-key}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    volumes:
+      - ./VSS-backend:/app
+      - backend-dev-data:/app/data
+      - backend-dev-logs:/app/logs
+      - /app/target  # 防止容器内编译文件被覆盖
+    networks:
+      - ${DOCKER_NETWORK:-vss-dev-network}
+    restart: unless-stopped
+    command: ["mvn", "spring-boot:run", "-Dspring-boot.run.jvmArguments=-Dspring.profiles.active=dev"]
+
+  # 前端开发服务
+  frontend-dev:
+    build:
+      context: ./VSS-frontend
+      dockerfile: Dockerfile.dev
+    container_name: vss-frontend-dev
+    ports:
+      - "${FRONTEND_PORT:-3001}:${FRONTEND_PORT:-3001}"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3003/api/v1}
+      - VITE_APP_TITLE=${VITE_APP_TITLE:-VSS Dev Platform}
+      - CHOKIDAR_USEPOLLING=true  # 为了在Docker中支持热重载
+    volumes:
+      - ./VSS-frontend:/app
+      - frontend-dev-modules:/app/node_modules
+    networks:
+      - ${DOCKER_NETWORK:-vss-dev-network}
+    restart: unless-stopped
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "${FRONTEND_PORT:-3001}"]
+    depends_on:
+      - backend-dev
+
+  # 开发数据库（使用PostgreSQL）
+  dev-database:
+    image: postgres:15-alpine
+    container_name: vss-dev-database
+    environment:
+      POSTGRES_DB: ${DB_NAME:-vss_dev_db}
+      POSTGRES_USER: ${DB_USERNAME:-dev_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ${DOCKER_NETWORK:-vss-dev-network}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-dev_user} -d ${DB_NAME:-vss_dev_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # 开发用Redis
+  dev-redis:
+    image: redis:7-alpine
+    container_name: vss-dev-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - dev_redis_data:/data
+    networks:
+      - ${DOCKER_NETWORK:-vss-dev-network}
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+
+  # 邮件开发服务器（MailHog）
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: vss-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - ${DOCKER_NETWORK:-vss-dev-network}
+    restart: unless-stopped
+    profiles:
+      - with-mail
+
+volumes:
+  backend-dev-data:
+    driver: local
+    name: vss-backend-dev-data
+  backend-dev-logs:
+    driver: local
+    name: vss-backend-dev-logs
+  frontend-dev-modules:
+    driver: local
+    name: vss-frontend-dev-modules
+  dev_postgres_data:
+    driver: local
+    name: vss-dev-postgres-data
+  dev_redis_data:
+    driver: local
+    name: vss-dev-redis-data
+
+networks:
+  ${DOCKER_NETWORK:-vss-dev-network}:
+    driver: bridge
+    name: ${DOCKER_NETWORK:-vss-dev-network}
