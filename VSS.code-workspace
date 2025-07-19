@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "name": "VSS-Frontend",
+      "path": "./VSS-frontend"
+    },
+    {
+      "name": "VSS-Backend", 
+      "path": "./VSS-backend"
+    }
+  ],
+  "settings": {
+    "git.alwaysSignOff": true,
+    "git.confirmSync": false
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "vscjava.vscode-java-pack",
+      "vscjava.vscode-spring-initializr"
+    ]
+  }
+}
