@@ -25,6 +25,10 @@
 - `install-local-env.bat` - 本地环境安装配置
 - `setup-local-env.bat` - 本地环境设置
 
+### 🏗️ 微服务部署脚本
+- `deploy-microservices.bat` - 微服务架构一键部署 (Windows)
+- `deploy-microservices.sh` - 微服务架构一键部署 (Linux/Mac)
+
 ## 🛠️ 使用方法
 
 ### 快速开始
@@ -59,6 +63,22 @@ cd scripts
 
 # 配置本地开发环境
 .\setup-local-env.bat
+```
+
+### 微服务部署
+```bash
+# 一键部署微服务架构
+.\deploy-microservices.bat
+
+# 查看微服务状态
+cd VSS-microservices
+docker-compose -f docker-compose.microservices.yml ps
+
+# 访问微服务
+# - API Gateway: http://localhost
+# - 用户服务: http://localhost:8081  
+# - 认证服务: http://localhost:8082
+# - Consul UI: http://localhost:8500
 ```
 
 ## 📋 脚本功能说明
