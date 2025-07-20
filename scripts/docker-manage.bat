@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul 2>&1
 REM VSS Docker Management Script - Windows Version
 
 REM 切换到项目根目录
@@ -24,16 +25,16 @@ goto help
 :help
 echo.
 echo ======= VSS Docker Management Tool =======
-echo          反向代理架构版本
+echo          Reverse Proxy Architecture
 echo.
 echo Usage: docker-manage.bat [command] [params]
 echo.
 echo Commands:
-echo   build [env]  - Build images (dev/prod)
+echo   build [env]  - Build images dev/prod
 echo   dev          - Start development environment
 echo   start        - Start production environment
-echo   proxy        - Start proxy mode (推荐)
-echo   dev-proxy    - Start development with proxy + hot reload (⭐开发推荐⭐)
+echo   proxy        - Start proxy mode [recommended]
+echo   dev-proxy    - Start development with proxy + hot reload [dev recommended]
 echo   stop         - Stop all services
 echo   restart      - Restart services
 echo   status       - Show service status
@@ -45,19 +46,12 @@ echo   config       - Configuration management
 echo   help         - Show help
 echo.
 echo Environments:
-echo   dev   - Development (with dev tools, debugging)
-echo   prod  - Production (standard mode)
-echo   proxy - Production (Nginx proxy mode) ⭐推荐⭐
-echo.
-echo 架构说明:
-echo   - 使用 Nginx 反向代理统一管理所有服务
-echo   - 只对外暴露 80 端口 (主服务) 和 8080 端口 (开发工具)
-echo   - 前端: 静态文件，通过 Nginx 直接服务 (无端口暴露)
-echo   - 后端: 内部端口 3000 (通过 Nginx /api/ 路由)
-echo   - 访问地址: http://localhost
+echo   dev   - Development with dev tools, debugging
+echo   prod  - Production standard mode  
+echo   proxy - Production Nginx proxy mode [recommended]
 echo.
 echo Examples:
-echo   docker-manage.bat proxy     (推荐启动方式)
+echo   docker-manage.bat proxy
 echo   docker-manage.bat build dev
 echo   docker-manage.bat logs nginx
 echo.
