@@ -5,24 +5,24 @@
 本文档为VSS (Vision System Service) 项目的完整微服务架构设计方案，专门针对7人技术团队进行了深度优化。
 
 **版本信息**
-- 文档版本: v2.0
+- 文档版本: v3.0
 - 创建日期: 2025年7月21日
-- 架构版本: 极简5服务架构
+- 架构版本: 五微服务现代化架构
 - 目标团队: 7人小型开发团队
 
 ## 🎯 架构设计目标
 
 ### 主要目标
-1. **降低复杂度** - 从15个服务优化到5个核心服务
-2. **提升效率** - 适配7人团队的开发和运维能力
-3. **保持灵活性** - 支持未来业务扩展和技术演进
-4. **务实可行** - 去除过度工程化，专注业务价值
+1. **技术多样性** - 五个独立的微服务，使用最适合的技术栈
+2. **独立部署** - 每个服务独立开发、测试、部署
+3. **职责清晰** - 明确的服务边界和功能划分
+4. **可扩展性** - 支持独立扩展和技术演进
 
 ### 核心原则
-- **简单优于复杂** - 选择最简可行的技术方案
-- **实用优于完美** - 优先满足当前需求
-- **团队优于技术** - 架构服务于团队能力
-- **价值优于规模** - 快速交付业务价值
+- **微服务架构** - 服务独立性和高内聚
+- **技术适配** - 为不同场景选择合适技术栈
+- **容器化** - Docker统一部署和管理
+- **持续集成** - 自动化构建、测试、部署
 
 ## 🏗️ 整体架构概览
 
@@ -30,127 +30,153 @@
 
 ```mermaid
 graph TB
-    subgraph "客户端层"
-        A[React前端应用]
+    subgraph "🌐 前端层"
+        A[React前端应用<br/>TypeScript + Vite]
     end
     
-    subgraph "网关层"
-        B[Nginx反向代理]
+    subgraph "⚙️ 微服务层"
+        B[Spring Boot后端<br/>Java业务服务]
+        C[Python AI服务<br/>FastAPI推理引擎]
+        D[.NET Framework服务<br/>企业级集成]
+        E[Python数据服务<br/>Pandas分析引擎]
     end
     
-    subgraph "业务服务层"
-        C[Python AI智能服务]
-        D[Go网络代理服务]
-        E[Java用户业务服务]
-        F[Java设备业务服务]
-        G[Java配置管理服务]
-    end
-    
-    subgraph "数据存储层"
-        H[PostgreSQL主数据库]
+    subgraph "💾 数据存储层"
+        F[PostgreSQL主数据库]
         I[Redis缓存集群]
     end
     
     A --> B
-    B --> C
-    B --> D
-    B --> E
+        G[Redis缓存集群]
+        H[MinIO对象存储]
+    end
+    
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    
     B --> F
+    C --> F
+    D --> F
+    E --> F
+    
+    C --> G
     B --> G
     
     C --> H
-    D --> H
     E --> H
-    F --> H
-    G --> H
     
-    C --> I
-    D --> I
-    E --> I
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#e0f2f1
+    style G fill:#fff8e1
+    style H fill:#f1f8e9
 ```
 
 ### 技术栈选型
 
 | 层级 | 技术组件 | 选择理由 |
 |------|----------|----------|
-| **前端** | React + TypeScript | 成熟生态，团队熟悉度高 |
-| **网关** | Nginx | 轻量级，配置简单 |
-| **AI服务** | Python + FastAPI | AI/ML生态丰富 |
-| **网络服务** | Go + Gin | 高性能并发处理 |
-| **业务服务** | Java + Spring Boot | 企业级稳定性 |
+| **前端** | React + TypeScript | 现代化开发体验，类型安全 |
+| **后端业务** | Spring Boot + Java | 企业级稳定性，团队熟悉度高 |
+| **AI推理** | Python + FastAPI | AI/ML生态丰富，推理性能好 |
+| **企业集成** | .NET Framework | 企业系统集成，Windows生态 |
+| **数据分析** | Python + Pandas | 数据科学生态，分析能力强 |
 | **数据库** | PostgreSQL | 功能全面，性能稳定 |
 | **缓存** | Redis | 高性能，多数据结构 |
 | **容器化** | Docker Compose | 部署简单，运维友好 |
 
 ## 📊 服务详细设计
 
-### 1. Python AI智能服务 🐍
+### 1. VSS-frontend (前端服务) ⚛️
 
 **服务职责**
-- AI模型推理引擎
-- 实时数据分析处理
-- 智能可视化生成
-- 模型版本管理
+- 用户界面和交互体验
+- 实时数据可视化展示
+- 多设备响应式支持
+- API调用和状态管理
 
 **技术架构**
-```
-ai-intelligence-service/
-├── inference_engine/     # 推理引擎
-├── model_management/     # 模型管理
-├── data_processing/      # 数据处理
-├── visualization/        # 可视化
-└── api_endpoints/        # API接口
-```
+- **框架**: React 18 + TypeScript
+- **构建工具**: Vite (快速热更新)
+- **状态管理**: Redux Toolkit
+- **UI组件**: Ant Design / Material-UI
+- **网络请求**: Axios
+- **路由**: React Router
 
-**核心功能**
-- 支持多种AI模型并发推理
-- 实时流式数据分析
-- 异常检测与预警
-- 动态图表生成
+**仓库地址**: [`VSS-frontend`](https://github.com/JN-TechCenter/VSS-frontend)
 
-### 2. Go网络代理服务 ⚡
+### 2. VSS-backend (后端服务) ☕
 
 **服务职责**
-- 视频流处理
-- 数据采集代理
-- WebSocket实时通信
-- 高并发连接管理
+- 核心业务逻辑处理
+- 用户认证和授权
+- 数据持久化管理
+- 微服务协调调度
 
-**技术特点**
-- 基于Gin框架
-- 协程并发处理
-- 内存池优化
-- 长连接管理
+**技术架构**
+- **框架**: Spring Boot 3.x
+- **数据访问**: Spring Data JPA
+- **安全认证**: Spring Security + JWT
+- **API文档**: Swagger/OpenAPI
+- **数据库**: PostgreSQL + Redis
 
-### 3. Java业务服务群 ☕
+**仓库地址**: [`VSS-backend`](https://github.com/JN-TechCenter/VSS-backend)
 
-#### 3.1 用户业务服务
-- 用户管理
-- 身份认证
-- 权限控制
-- 会话管理
+### 3. inference-server (AI推理服务) 🤖
 
-#### 3.2 设备业务服务
-- 设备注册管理
-- 数据收集处理
-- 工作流引擎
-- 状态监控
+**服务职责**
+- YOLO等AI模型推理
+- 图像识别和目标检测
+- 实时视频流分析
+- 模型性能监控
 
-#### 3.3 配置管理服务
-- 系统配置中心
-- 参数动态管理
-- 环境配置
-- 运维工具集
+**技术架构**
+- **框架**: FastAPI + Python 3.9+
+- **AI引擎**: PyTorch + YOLO
+- **异步处理**: asyncio + uvicorn
+- **图像处理**: OpenCV + Pillow
+- **模型管理**: 支持多版本模型热切换
 
-### 4. React前端应用 ⚛️
+**仓库地址**: [`inference-server`](https://github.com/JN-TechCenter/inference_server)
 
-**功能模块**
-- 用户界面
-- 实时监控面板
-- 数据可视化
-- 系统管理
+### 4. net-framework-server (网络框架服务) 🌐
 
-**技术特性**
+**服务职责**
+- 企业系统集成接口
+- Windows生态系统支持
+- 传统系统桥接
+- .NET生态组件调用
+
+**技术架构**
+- **框架**: .NET Framework 4.8
+- **Web框架**: ASP.NET Web API
+- **依赖注入**: Unity Container
+- **数据访问**: Entity Framework
+- **通信协议**: RESTful API + WCF
+
+**仓库地址**: [`net-framework-server`](https://github.com/JN-TechCenter/net-framework-server)
+
+### 5. data-analysis-server (数据分析服务) 📊
+
+**服务职责**
+- 大数据分析和处理
+- 统计报表生成
+- 数据挖掘和洞察
+- 可视化数据输出
+
+**技术架构**
+- **框架**: Flask + Python 3.9+
+- **数据处理**: Pandas + NumPy
+- **可视化**: Matplotlib + Plotly
+- **数据库**: SQLAlchemy ORM
+- **任务队列**: Celery + Redis
+
+**仓库地址**: [`data-analysis-server`](https://github.com/JN-TechCenter/data-analysis-server)
 - 响应式设计
 - 组件化开发
 - 实时数据更新
@@ -248,37 +274,41 @@ services:
     ports:
       - "80:80"
     
-  ai-service:
-    build: ./ai-intelligence-service
+  vss-frontend:
+    build: ./VSS-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    
+  vss-backend:
+    build: ./VSS-backend
+    ports:
+      - "3002:3002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    
+  inference-server:
+    build: ./inference-server
     ports:
       - "8084:8084"
     environment:
       - GPU_ENABLED=true
+      - MODEL_PATH=/app/models
     
-  network-proxy:
-    build: ./network-proxy-service
+  net-framework-server:
+    build: ./net-framework-server
     ports:
       - "8085:8085"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
     
-  user-service:
-    build: ./user-business-service
+  data-analysis-server:
+    build: ./data-analysis-server
     ports:
-      - "8081:8081"
-    
-  device-service:
-    build: ./device-business-service
-    ports:
-      - "8082:8082"
-    
-  config-service:
-    build: ./config-management-service
-    ports:
-      - "8083:8083"
-    
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
+      - "8086:8086"
+    environment:
+      - FLASK_ENV=production
     
   postgres:
     image: postgres:15
@@ -286,11 +316,16 @@ services:
       POSTGRES_DB: vss_db
       POSTGRES_USER: vss_user
       POSTGRES_PASSWORD: vss_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+
+volumes:
+  postgres_data:
 ```
 
 ### 环境配置
@@ -375,10 +410,11 @@ services:
 
 | 团队 | 人数 | 负责服务 | 技能要求 |
 |------|------|----------|----------|
-| Python团队 | 2人 | AI智能服务 | ML/DL, Python |
-| Go团队 | 1人 | 网络代理服务 | 高并发, Go |
-| Java团队 | 3人 | 业务服务群 | Spring Boot |
-| 前端团队 | 1人 | React应用 | React, TypeScript |
+| 前端团队 | 2人 | VSS-frontend | React, TypeScript, Vite |
+| Java团队 | 2人 | VSS-backend | Spring Boot, PostgreSQL |
+| Python AI团队 | 2人 | inference-server | FastAPI, PyTorch, YOLO |
+| .NET团队 | 1人 | net-framework-server | .NET Framework, ASP.NET |
+| 数据团队 | 1人 | data-analysis-server | Python, Pandas, Flask |
 
 ### 开发流程
 
@@ -401,13 +437,13 @@ services:
 
 ### 实施价值
 
-- **开发效率提升40%** - 服务边界清晰
-- **运维成本降低60%** - 基础设施简化
-- **团队技能提升** - 专业化分工明确
-- **业务价值聚焦** - 快速迭代交付
+- **开发效率提升40%** - 服务边界清晰，技术栈专业化
+- **运维成本降低60%** - Docker Compose简化部署
+- **团队技能提升** - 现代化技术栈，专业化分工
+- **业务价值聚焦** - 快速迭代交付，AI能力突出
 
-这个架构设计既满足了微服务的技术优势，又充分考虑了小团队的实际情况，是VSS项目的最佳技术选择。
+这个架构设计充分利用了React、Spring Boot、Python AI、.NET和数据分析的技术优势，为VSS项目提供了现代化、可扩展的技术方案。
 
 ---
 
-*VSS微服务架构设计文档 v2.0 - 2025年7月21日*
+*VSS微服务架构设计文档 v3.0 - 2025年1月*
