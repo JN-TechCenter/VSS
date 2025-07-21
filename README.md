@@ -151,6 +151,32 @@ quick-start.bat
 | **Docker生产** | `docker-manage.bat proxy` | 生产部署 | ❌ |
 | **本地开发** | `quick-start.bat` | 个人开发 | ✅ |
 
+### 🔧 子模块管理
+
+VSS项目采用Git子模块架构，三个核心服务独立开发和部署：
+
+```bash
+# 查看子模块状态
+.\scripts\submodules.bat status
+
+# 初始化所有子模块 (首次使用)
+.\scripts\submodules.bat init
+
+# 更新子模块到最新版本
+.\scripts\submodules.bat update
+
+# 查看子模块仓库链接
+.\scripts\submodules.bat links
+```
+
+### 🌐 服务访问地址
+
+| 服务 | 开发模式 | 生产模式 | 健康检查 |
+|------|----------|----------|----------|
+| **前端** | http://localhost:3000 | http://localhost | /health |
+| **后端** | http://localhost:3002 | http://localhost/api | /actuator/health |
+| **AI服务** | http://localhost:8084 | http://localhost/ai | /health |
+
 ## 📚 文档导航
 
 | 文档类型 | 链接 | 说明 |
