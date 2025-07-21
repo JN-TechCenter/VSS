@@ -296,7 +296,7 @@ services:
     depends_on:
       - vss-user-service
       - vss-auth-service
-      - vss-vision-service
+      - vss-inference-server-service
       - vss-legacy
 
   # Legacy Application (渐进式迁移)
@@ -329,13 +329,15 @@ services:
       - redis
       - consul
 
-  vss-vision-service:
-    build: ./services/vision
+  vss-inference-server-service:
+    build: ./services/inference-server
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - MINIO_ENDPOINT=http://minio:9000
+      - MODEL_CACHE_SIZE=100
+      - INFERENCE_BATCH_SIZE=10
     depends_on:
-      - postgres-vision
+      - postgres-inference
       - minio
       - consul
 
@@ -365,14 +367,14 @@ services:
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
 
-  postgres-vision:
+  postgres-inference:
     image: postgres:13
     environment:
-      POSTGRES_DB: vss_vision
+      POSTGRES_DB: vss_inference
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - postgres_vision_data:/var/lib/postgresql/data
+      - postgres_inference_data:/var/lib/postgresql/data
 
   redis:
     image: redis:6-alpine
@@ -394,7 +396,7 @@ services:
 volumes:
   postgres_main_data:
   postgres_user_data:
-  postgres_vision_data:
+  postgres_inference_data:
   redis_data:
   minio_data:
 ```

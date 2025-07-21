@@ -119,7 +119,7 @@ services:
   # 仓库: https://github.com/JN-TechCenter/inference_server
   yolo-inference:
     build:
-      context: ./inference_server
+      context: ./inference-server
       dockerfile: Dockerfile
     container_name: vss-yolo-inference
     ports:
@@ -177,6 +177,41 @@ services:
       retries: 3
       start_period: 60s
 
+  # 🌐 网络框架服务 (.NET Framework)
+  # 仓库: https://github.com/JN-TechCenter/net-framework-server
+  net-framework-server:
+    build:
+      context: ./net-framework-server
+      dockerfile: Dockerfile
+    container_name: vss-net-framework-server
+    ports:
+      - "${NET_PORT:-8085}:${NET_PORT:-8085}"
+    environment:
+      # 服务基础配置
+      - ASPNET_ENVIRONMENT=${ASPNET_ENVIRONMENT:-Production}
+      - PORT=${NET_PORT:-8085}
+      
+      # 网络配置
+      - NETWORK_TIMEOUT=${NETWORK_TIMEOUT:-30000}
+      - MAX_CONNECTIONS=${NET_MAX_CONNECTIONS:-100}
+      
+      # 日志配置
+      - LOG_LEVEL=${NET_LOG_LEVEL:-Information}
+      - LOG_FILE=${NET_LOG_FILE:-C:/app/logs/net_framework.log}
+      
+    volumes:
+      - net-logs:/app/logs
+      - net-data:/app/data
+    networks:
+      - vss-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NET_PORT:-8085}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
 # 网络配置
 networks:
   vss-network:
@@ -197,3 +232,7 @@ volumes:
     name: vss-yolo-logs
   yolo-models:
     name: vss-yolo-models
+  net-logs:
+    name: vss-net-logs
+  net-data:
+    name: vss-net-data

@@ -1,5 +1,5 @@
-[submodule "inference_server"]
-	path = inference_server
+[submodule "inference-server"]
+	path = inference-server
 	url = https://github.com/JN-TechCenter/inference_server.git
 
 [submodule "VSS-frontend"]
@@ -9,3 +9,7 @@
 [submodule "VSS-backend"]
 	path = VSS-backend
 	url = https://github.com/JN-TechCenter/VSS-backend.git
+
+[submodule "net-framework-server"]
+	path = net-framework-server
+	url = https://github.com/JN-TechCenter/net-framework-server.git

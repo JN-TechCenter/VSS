@@ -117,7 +117,8 @@ VSS/
 |------|--------|----------|----------|
 | **前端服务** | React + TypeScript | [![VSS-frontend](https://img.shields.io/badge/GitHub-VSS--frontend-blue?logo=github)](https://github.com/JN-TechCenter/VSS-frontend) | [`📁 VSS-frontend/`](https://github.com/JN-TechCenter/VSS-frontend) |
 | **后端服务** | Spring Boot + Java | [![VSS-backend](https://img.shields.io/badge/GitHub-VSS--backend-green?logo=github)](https://github.com/JN-TechCenter/VSS-backend) | [`📁 VSS-backend/`](https://github.com/JN-TechCenter/VSS-backend) |
-| **AI推理服务** | Python + FastAPI | [![inference_server](https://img.shields.io/badge/GitHub-inference__server-orange?logo=github)](https://github.com/JN-TechCenter/inference_server) | [`📁 inference_server/`](https://github.com/JN-TechCenter/inference_server) |
+| **AI推理服务** | Python + FastAPI | [![inference-server](https://img.shields.io/badge/GitHub-inference--server-orange?logo=github)](https://github.com/JN-TechCenter/inference_server) | [`📁 inference-server/`](https://github.com/JN-TechCenter/inference_server) |
+| **网络框架服务** | .NET Framework | [![net-framework-server](https://img.shields.io/badge/GitHub-net--framework--server-purple?logo=github)](https://github.com/JN-TechCenter/net-framework-server) | [`📁 net-framework-server/`](https://github.com/JN-TechCenter/net-framework-server) |
 
 > **💡 提示**: 点击上方的文件夹路径可以直接跳转到对应的子模块仓库！
 
