@@ -1,0 +1,330 @@
+# VSS项目持续集成配置
+name: VSS Microservices CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 每天凌晨2点自动构建
+    - cron: '0 2 * * *'
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  PROJECT_NAME: vss
+
+jobs:
+  # 检测子模块变更
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      yolo-changed: ${{ steps.changes.outputs.yolo }}
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
+      backend-changed: ${{ steps.changes.outputs.backend }}
+      docs-changed: ${{ steps.changes.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # 拉取所有子模块（包括YOLO）
+          fetch-depth: 0
+      
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            yolo:
+              - 'inference_server/**'
+              - '.env.yolo'
+            frontend:
+              - 'VSS-frontend/**'
+            backend:
+              - 'VSS-backend/**'
+            docs:
+              - 'docs/**'
+              - '*.md'
+
+  # YOLO推理服务测试和构建
+  yolo-inference-ci:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.yolo-changed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # 拉取所有子模块（包括YOLO）
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('inference_server/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          cd inference_server
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      
+      - name: Lint with flake8
+        run: |
+          cd inference_server
+          pip install flake8
+          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Test with pytest  
+        run: |
+          cd inference_server
+          pytest tests/ --cov=app --cov-report=xml
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./inference_server/coverage.xml
+          flags: yolo-inference
+          name: yolo-inference-coverage
+      
+      - name: Build Docker image
+        run: |
+          cd inference_server
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/yolo-inference:${{ github.sha }} .
+      
+      - name: Run integration tests
+        run: |
+          docker run --name yolo-test \
+            -p 8084:8084 \
+            -e GPU_ENABLED=false \
+            -d ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/yolo-inference:${{ github.sha }}
+          
+          # 等待服务启动
+          sleep 30
+          
+          # 健康检查
+          curl -f http://localhost:8084/health
+          
+          # 清理
+          docker stop yolo-test
+          docker rm yolo-test
+
+  # 前端CI/CD
+  frontend-ci:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 拉取前端子模块
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: VSS-frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd VSS-frontend
+          npm ci
+      
+      - name: Lint code
+        run: |
+          cd VSS-frontend
+          npm run lint
+      
+      - name: Run tests
+        run: |
+          cd VSS-frontend
+          npm run test:ci
+      
+      - name: Build application
+        run: |
+          cd VSS-frontend
+          npm run build
+      
+      - name: Build Docker image
+        run: |
+          cd VSS-frontend
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/frontend:${{ github.sha }} .
+
+  # 后端CI/CD
+  backend-ci:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 拉取后端子模块
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('VSS-backend/**/*.gradle*', 'VSS-backend/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x VSS-backend/gradlew
+      
+      - name: Run tests
+        run: |
+          cd VSS-backend
+          ./gradlew test
+      
+      - name: Build application
+        run: |
+          cd VSS-backend
+          ./gradlew build
+      
+      - name: Build Docker image
+        run: |
+          cd VSS-backend
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/backend:${{ github.sha }} .
+
+  # 集成测试
+  integration-test:
+    needs: [yolo-inference-ci, frontend-ci, backend-ci]
+    if: always() && (needs.yolo-inference-ci.result == 'success' || needs.frontend-ci.result == 'success' || needs.backend-ci.result == 'success')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Start services with Docker Compose
+        run: |
+          # 使用测试配置
+          cp docker-compose.yml docker-compose.test.yml
+          
+          # 启动所有服务
+          docker-compose -f docker-compose.test.yml up -d
+          
+          # 等待服务启动
+          sleep 60
+      
+      - name: Run integration tests
+        run: |
+          # 测试服务间通信
+          curl -f http://localhost:3000  # 前端
+          curl -f http://localhost:8080/actuator/health  # 后端
+          curl -f http://localhost:8084/health  # YOLO服务
+          
+          # 运行端到端测试
+          npm install -g newman
+          newman run tests/integration/vss-api-tests.postman_collection.json \
+            --environment tests/integration/test-environment.json \
+            --reporters cli,json --reporter-json-export integration-test-results.json
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: integration-test-results.json
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down -v
+
+  # 部署到测试环境
+  deploy-staging:
+    needs: integration-test
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "🚀 部署到测试环境..."
+          # 这里添加实际的部署脚本
+          # 例如: kubectl apply -f k8s/staging/
+          # 或者: docker-compose -f docker-compose.staging.yml up -d
+
+  # 部署到生产环境
+  deploy-production:
+    needs: integration-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "🚀 部署到生产环境..."
+          # 这里添加实际的生产部署脚本
+          # 需要更严格的审查和测试
+
+  # 文档更新
+  docs-deploy:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs-changed == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy documentation
+        run: |
+          echo "📚 更新项目文档..."
+          # 这里可以添加文档站点的部署逻辑
+          # 例如部署到GitHub Pages或其他文档服务
+
+  # 安全扫描
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+# Note: GitHub Actions 不支持 notifications 配置
+# 可以使用 slack-notification action 或其他第三方解决方案
