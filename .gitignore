@@ -24,3 +24,20 @@ VSS-backend/
 
 # 子模块的依赖和构建产物由各自的.gitignore管理
 # 这里只忽略主项目级别的文件
+
+# 大模型文件 - 避免GitHub文件大小限制
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.h5
+*.model
+*.weights
+weights/
+models/
+checkpoints/
+
+# AI推理服务大文件
+inference_server/weights/
+inference_server/models/
+inference_server/checkpoints/

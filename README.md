@@ -103,21 +103,21 @@ graph TB
 VSS/
 ├── 📄 README.md                    # 项目主页文档
 ├── 🐳 docker-compose*.yml          # Docker编排配置  
-├── 📁 docs/                        # � 技术文档中心
+├── 📁 docs/                        # 📚 技术文档中心
 │   ├── 01-architecture/            # 架构设计文档
 │   ├── 06-services/                # 各服务专项文档  
 │   └── 08-guides/                  # 使用指南文档
-├── 📁 VSS-frontend/                # ⚛️ React前端应用
-│   ├── src/                       # 前端源代码
-│   └── package.json               # 依赖配置
-├── 📁 VSS-backend/                 # ☕ Spring Boot后端
-│   ├── src/main/java/             # 后端源代码
-│   └── pom.xml                    # Maven配置
 ├── 📁 nginx/                       # 🌐 Web服务器配置
 └── 📁 scripts/                     # 🔧 管理脚本集合
 ```
-└── ⚙️ VSS-backend/                 # Spring Boot 后端
-    ├── src/main/java/             # Java 源代码
+
+### 🔗 微服务子模块
+
+| 服务 | 技术栈 | 仓库链接 | 本地路径 |
+|------|--------|----------|----------|
+| **前端服务** | React + TypeScript | [![VSS-frontend](https://img.shields.io/badge/GitHub-VSS--frontend-blue?logo=github)](https://github.com/JN-TechCenter/VSS-frontend) | [`📁 VSS-frontend/`](https://github.com/JN-TechCenter/VSS-frontend) |
+| **后端服务** | Spring Boot + Java | [![VSS-backend](https://img.shields.io/badge/GitHub-VSS--backend-green?logo=github)](https://github.com/JN-TechCenter/VSS-backend) | [`📁 VSS-backend/`](https://github.com/JN-TechCenter/VSS-backend) |
+| **AI推理服务** | Python + FastAPI | [![inference_server](https://img.shields.io/badge/GitHub-inference__server-orange?logo=github)](https://github.com/JN-TechCenter/inference_server) | [`📁 inference_server/`](https://github.com/JN-TechCenter/inference_server) |
     ├── src/main/resources/        # 配置资源文件
     ├── pom.xml                    # Maven 项目配置
     └── Dockerfile                 # 容器构建文件
