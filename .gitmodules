@@ -1,0 +1,3 @@
+[submodule "inference_server"]
+	path = inference_server
+	url = https://github.com/JN-TechCenter/inference_server.git
