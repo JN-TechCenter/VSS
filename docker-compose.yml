@@ -212,6 +212,48 @@ services:
       retries: 3
       start_period: 45s
 
+  # 📊 数据分析服务 (Python + Pandas)
+  # 仓库: https://github.com/JN-TechCenter/data-analysis-server
+  data-analysis-server:
+    build:
+      context: ./data-analysis-server
+      dockerfile: Dockerfile
+    container_name: vss-data-analysis-server
+    ports:
+      - "${DATA_ANALYSIS_PORT:-8086}:${DATA_ANALYSIS_PORT:-8086}"
+    environment:
+      # 服务基础配置
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-False}
+      - HOST=${DATA_ANALYSIS_HOST:-0.0.0.0}
+      - PORT=${DATA_ANALYSIS_PORT:-8086}
+      
+      # 数据库配置
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@postgres-data:5432/vss_data}
+      
+      # 数据分析配置
+      - ANALYSIS_BATCH_SIZE=${ANALYSIS_BATCH_SIZE:-1000}
+      - CACHE_TIMEOUT=${CACHE_TIMEOUT:-3600}
+      - MAX_WORKERS=${MAX_WORKERS:-4}
+      
+      # 日志配置
+      - LOG_LEVEL=${DATA_ANALYSIS_LOG_LEVEL:-INFO}
+      - LOG_FILE=${DATA_ANALYSIS_LOG_FILE:-/app/logs/data_analysis.log}
+      
+    volumes:
+      - data-analysis-cache:/app/cache
+      - data-analysis-logs:/app/logs
+      - data-analysis-reports:/app/reports
+    networks:
+      - vss-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${DATA_ANALYSIS_PORT:-8086}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
 # 网络配置
 networks:
   vss-network:
@@ -236,3 +278,9 @@ volumes:
     name: vss-net-logs
   net-data:
     name: vss-net-data
+  data-analysis-cache:
+    name: vss-data-analysis-cache
+  data-analysis-logs:
+    name: vss-data-analysis-logs
+  data-analysis-reports:
+    name: vss-data-analysis-reports

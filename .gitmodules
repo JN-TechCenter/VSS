@@ -13,3 +13,7 @@
 [submodule "net-framework-server"]
 	path = net-framework-server
 	url = https://github.com/JN-TechCenter/net-framework-server.git
+
+[submodule "data-analysis-server"]
+	path = data-analysis-server
+	url = https://github.com/JN-TechCenter/data-analysis-server.git

@@ -27,7 +27,8 @@ mkdir VSS-microservices
 cd VSS-microservices
 
 # 创建各服务目录结构
-mkdir -p services/{user,auth,vision,data,analytics,file,notification,config}
+# 创建各服务目录结构
+mkdir -p services/{user,auth,inference-server,data-analysis,analytics,file,notification,config}
 mkdir -p gateway
 mkdir -p infrastructure/{docker,k8s,monitoring}
 mkdir -p shared/{libraries,contracts}
