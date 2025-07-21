@@ -1,10 +1,30 @@
 version: '3.8'
 
-# VSS 标准 Docker Compose 配置
-# 每个服务独立暴露端口，适用于简单部署
+# VSS 微服务 Docker Compose 配置
+# 完整的三服务架构：前端 + 后端 + AI推理服务
 
 services:
-  # 后端服务
+  # 🌐 前端服务 (React + TypeScript)
+  # 仓库: https://github.com/JN-TechCenter/VSS-frontend
+  frontend:
+    build:
+      context: ./VSS-frontend
+      dockerfile: Dockerfile
+    container_name: vss-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:3002}
+      - REACT_APP_WS_URL=${REACT_APP_WS_URL:-ws://localhost:3002}
+    depends_on:
+      - backend
+    networks:
+      - vss-network
+    restart: unless-stopped
+
+  # ⚙️ 后端服务 (Spring Boot + Java)
+  # 仓库: https://github.com/JN-TechCenter/VSS-backend
   backend:
     build:
       context: ./VSS-backend
