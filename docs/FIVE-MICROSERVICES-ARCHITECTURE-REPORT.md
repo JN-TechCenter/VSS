@@ -14,7 +14,7 @@
 | **VSS-frontend** | React + TypeScript | 3000 | [前端服务](https://github.com/JN-TechCenter/VSS-frontend) | 用户界面和交互 |
 | **VSS-backend** | Spring Boot + Java | 3002 | [后端服务](https://github.com/JN-TechCenter/VSS-backend) | 业务逻辑和API |
 | **inference-server** | Python + FastAPI | 8084 | [AI推理服务](https://github.com/JN-TechCenter/inference_server) | 机器学习和图像识别 |
-| **net-framework-server** | .NET Framework | 8085 | [网络框架服务](https://github.com/JN-TechCenter/net-framework-server) | 企业级服务集成 |
+| **net-framework-server** | Go + Gin | 8085 | [网络代理服务](https://github.com/JN-TechCenter/net-framework-server) | 网络代理和转发 |
 | **data-analysis-server** | Python + Pandas | 8086 | [数据分析服务](https://github.com/JN-TechCenter/data-analysis-server) | 数据处理和分析 |
 
 ## 🏗️ 架构设计理念

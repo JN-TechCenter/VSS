@@ -19,7 +19,7 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      yolo-changed: ${{ steps.changes.outputs.yolo }}
+      inference-changed: ${{ steps.changes.outputs.inference }}
       frontend-changed: ${{ steps.changes.outputs.frontend }}
       backend-changed: ${{ steps.changes.outputs.backend }}
       docs-changed: ${{ steps.changes.outputs.docs }}
@@ -33,9 +33,9 @@ jobs:
         id: changes
         with:
           filters: |
-            yolo:
+            inference:
               - 'inference_server/**'
-              - '.env.yolo'
+              - '.env.inference'
             frontend:
               - 'VSS-frontend/**'
             backend:
@@ -44,10 +44,10 @@ jobs:
               - 'docs/**'
               - '*.md'
 
-  # YOLO推理服务测试和构建
+  # AI推理服务测试和构建 (支持MindSpore框架)
   yolo-inference-ci:
     needs: detect-changes
-    if: needs.detect-changes.outputs.yolo-changed == 'true'
+    if: needs.detect-changes.outputs.inference-changed == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -57,7 +57,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # 拉取所有子模块（包括YOLO）
+          submodules: recursive  # 拉取所有子模块（包括推理服务）
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -68,14 +68,17 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('inference_server/requirements.txt') }}
+          key: ${{ runner.os }}-pip-mindspore-${{ hashFiles('inference_server/requirements.txt') }}
           restore-keys: |
+            ${{ runner.os }}-pip-mindspore-
             ${{ runner.os }}-pip-
       
-      - name: Install dependencies
+      - name: Install MindSpore and dependencies
         run: |
           cd inference_server
           python -m pip install --upgrade pip
+          # 安装MindSpore CPU版本用于CI测试
+          pip install mindspore==2.2.0
           pip install -r requirements.txt
           pip install pytest pytest-cov
       
@@ -86,29 +89,33 @@ jobs:
           flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 app/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       
-      - name: Test with pytest  
+      - name: Test MindSpore inference scripts
         run: |
           cd inference_server
+          # 测试MindSpore推理脚本
+          python -c "import mindspore; print('MindSpore version:', mindspore.__version__)"
           pytest tests/ --cov=app --cov-report=xml
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           file: ./inference_server/coverage.xml
-          flags: yolo-inference
-          name: yolo-inference-coverage
+          flags: mindspore-inference
+          name: mindspore-inference-coverage
       
-      - name: Build Docker image
+      - name: Build Docker image with MindSpore
         run: |
           cd inference_server
-          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/yolo-inference:${{ github.sha }} .
+          # 构建支持MindSpore的推理服务镜像
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/mindspore-inference:${{ github.sha }} .
       
       - name: Run integration tests
         run: |
-          docker run --name yolo-test \
+          docker run --name mindspore-test \
             -p 8084:8084 \
             -e GPU_ENABLED=false \
-            -d ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/yolo-inference:${{ github.sha }}
+            -e INFERENCE_FRAMEWORK=mindspore \
+            -d ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}/mindspore-inference:${{ github.sha }}
           
           # 等待服务启动
           sleep 30
@@ -116,9 +123,12 @@ jobs:
           # 健康检查
           curl -f http://localhost:8084/health
           
+          # 测试MindSpore推理端点
+          curl -f http://localhost:8084/api/inference/status
+          
           # 清理
-          docker stop yolo-test
-          docker rm yolo-test
+          docker stop mindspore-test
+          docker rm mindspore-test
 
   # 前端CI/CD
   frontend-ci:
@@ -238,7 +248,7 @@ jobs:
           # 测试服务间通信
           curl -f http://localhost:3000  # 前端
           curl -f http://localhost:8080/actuator/health  # 后端
-          curl -f http://localhost:8084/health  # YOLO服务
+          curl -f http://localhost:8084/health  # MindSpore推理服务
           
           # 运行端到端测试
           npm install -g newman

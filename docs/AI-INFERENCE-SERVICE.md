@@ -5,21 +5,20 @@
 本文档详细描述VSS项目中AI模型推理服务的架构设计、技术实现和部署方案。
 
 **文档信息**
-- 版本: v1.0
-- 创建日期: 2025年7月21日
-- 服务名称: AI智能服务 (ai-intelligence-service)
-- 技术栈: Python + FastAPI + PyTorch/ONNX
+- 版本: v2.0
+- 创建日期: 2025年1月
+- 服务名称: inference-server
+- 技术栈: Python + FastAPI + PyTorch/YOLO
 
 ## 🎯 服务概述
 
 ### 核心职责
 
-AI智能服务是VSS系统的核心组件，负责：
-- 多种AI模型的推理执行
-- 实时数据流分析处理
-- 智能异常检测预警
-- 动态可视化图表生成
-- 模型版本管理与热更新
+inference-server是VSS系统的核心AI组件，负责：
+- YOLO等AI模型的推理执行
+- 图像识别和目标检测
+- 实时视频流分析处理
+- 模型性能监控和优化
 
 ### 业务价值
 

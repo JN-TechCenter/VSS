@@ -37,7 +37,7 @@ graph TB
     subgraph "⚙️ 微服务层"
         B[Spring Boot后端<br/>Java业务服务]
         C[Python AI服务<br/>FastAPI推理引擎]
-        D[.NET Framework服务<br/>企业级集成]
+        D[Go代理服务<br/>高性能网络代理]
         E[Python数据服务<br/>Pandas分析引擎]
     end
     
@@ -84,7 +84,7 @@ graph TB
 | **前端** | React + TypeScript | 现代化开发体验，类型安全 |
 | **后端业务** | Spring Boot + Java | 企业级稳定性，团队熟悉度高 |
 | **AI推理** | Python + FastAPI | AI/ML生态丰富，推理性能好 |
-| **企业集成** | .NET Framework | 企业系统集成，Windows生态 |
+| **网络代理** | Go + Gin | 高并发性能，轻量级部署 |
 | **数据分析** | Python + Pandas | 数据科学生态，分析能力强 |
 | **数据库** | PostgreSQL | 功能全面，性能稳定 |
 | **缓存** | Redis | 高性能，多数据结构 |
@@ -144,20 +144,20 @@ graph TB
 
 **仓库地址**: [`inference-server`](https://github.com/JN-TechCenter/inference_server)
 
-### 4. net-framework-server (网络框架服务) 🌐
+### 4. net-framework-server (网络代理服务) 🌐
 
 **服务职责**
-- 企业系统集成接口
-- Windows生态系统支持
-- 传统系统桥接
-- .NET生态组件调用
+- 网络代理和转发服务
+- 高性能网络通信处理
+- 协议转换和路由管理
+- 网络连接池管理
 
 **技术架构**
-- **框架**: .NET Framework 4.8
-- **Web框架**: ASP.NET Web API
-- **依赖注入**: Unity Container
-- **数据访问**: Entity Framework
-- **通信协议**: RESTful API + WCF
+- **框架**: Go + Gin
+- **网络通信**: net/http + goroutines
+- **代理协议**: HTTP/HTTPS Proxy
+- **并发处理**: Go协程 + Channel
+- **连接管理**: 高并发连接池
 
 **仓库地址**: [`net-framework-server`](https://github.com/JN-TechCenter/net-framework-server)
 
@@ -301,7 +301,8 @@ services:
     ports:
       - "8085:8085"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - GO_ENV=production
+      - PROXY_TIMEOUT=30s
     
   data-analysis-server:
     build: ./data-analysis-server
@@ -413,7 +414,7 @@ volumes:
 | 前端团队 | 2人 | VSS-frontend | React, TypeScript, Vite |
 | Java团队 | 2人 | VSS-backend | Spring Boot, PostgreSQL |
 | Python AI团队 | 2人 | inference-server | FastAPI, PyTorch, YOLO |
-| .NET团队 | 1人 | net-framework-server | .NET Framework, ASP.NET |
+| Go团队 | 1人 | net-framework-server | Go, Gin, 网络代理 |
 | 数据团队 | 1人 | data-analysis-server | Python, Pandas, Flask |
 
 ### 开发流程

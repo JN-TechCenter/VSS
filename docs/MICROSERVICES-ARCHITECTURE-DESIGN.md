@@ -101,24 +101,24 @@ graph TB
 - OpenCV + Pillow 图像处理
 - 多版本模型热切换
 
-#### 4. net-framework-server (企业集成服务) 🌐
+#### 4. net-framework-server (网络代理服务) 🌐
 
-**技术栈**: .NET Framework 4.8 + ASP.NET Web API  
+**技术栈**: Go + Gin  
 **端口**: 8085  
 **仓库**: [net-framework-server](https://github.com/JN-TechCenter/net-framework-server)
 
 **核心功能**:
-- 企业系统集成接口
-- Windows生态系统支持
-- 传统系统桥接
-- .NET生态组件调用
+- 网络代理和转发服务
+- 高性能网络通信处理
+- 协议转换和路由管理
+- 网络连接池管理
 
 **技术特性**:
-- .NET Framework 4.8
-- ASP.NET Web API
-- Unity Container 依赖注入
-- Entity Framework 数据访问
-- RESTful API + WCF 通信
+- Go + Gin 框架
+- net/http + goroutines 网络通信
+- HTTP/HTTPS 代理协议
+- Go协程 + Channel 并发处理
+- 高并发连接池管理
 
 #### 5. data-analysis-server (数据分析服务) 📊
 
@@ -138,65 +138,142 @@ graph TB
 - Matplotlib + Plotly 可视化
 - SQLAlchemy ORM
 - Celery + Redis 任务队列
-```
-📁 vss-vision-service/
-├── 🎯 功能职责
-│   ├── 图像处理算法
-│   ├── 目标检测
-│   ├── 特征提取
-│   └── 模型推理
-├── 🗄️ 数据存储
-│   ├── MinIO (图像文件)
-│   ├── PostgreSQL (算法元数据)
-│   └── InfluxDB (性能指标)
-└── 🔗 API 端点
-    ├── POST /api/vision/analyze
-    ├── GET /api/vision/models
-    ├── POST /api/vision/train
-    └── GET /api/vision/results/{id}
+## 🔄 服务间通信设计
+
+### 通信架构
+
+```mermaid
+graph TB
+    A[VSS-frontend<br/>:3000] --> B[VSS-backend<br/>:3002]
+    A --> C[inference-server<br/>:8084]
+    A --> D[net-framework-server<br/>:8085]
+    A --> E[data-analysis-server<br/>:8086]
+    
+    B <--> F[PostgreSQL]
+    C <--> F
+    D <--> F
+    E <--> F
+    
+    B <--> G[Redis]
+    C <--> G
+    D <--> G
+    E <--> G
 ```
 
-#### 4. 数据管理服务 (Data Service)
-```
-📁 vss-data-service/
-├── 🎯 功能职责
-│   ├── 数据源管理
-│   ├── 数据清洗
-│   ├── 数据同步
-│   └── 数据质量监控
-├── 🗄️ 数据存储
-│   ├── PostgreSQL (元数据)
-│   ├── Elasticsearch (全文搜索)
-│   └── Redis (查询缓存)
-└── 🔗 API 端点
-    ├── GET /api/data/sources
-    ├── POST /api/data/sync
-    ├── GET /api/data/search
-    └── GET /api/data/quality
+### API设计规范
+
+**RESTful API 标准**:
+- `GET /api/v1/resource` - 获取资源列表
+- `POST /api/v1/resource` - 创建资源
+- `GET /api/v1/resource/{id}` - 获取资源详情
+- `PUT /api/v1/resource/{id}` - 更新资源
+- `DELETE /api/v1/resource/{id}` - 删除资源
+
+**端口分配**:
+- VSS-frontend: 3000 (HTTP)
+- VSS-backend: 3002 (HTTP REST API)
+- inference-server: 8084 (HTTP + WebSocket)
+- net-framework-server: 8085 (HTTP)
+- data-analysis-server: 8086 (HTTP)
+
+### 数据共享策略
+
+**共享数据库模式**:
+- PostgreSQL 作为主数据库
+- Redis 提供缓存和会话存储
+- 简化数据一致性管理
+- 降低服务间通信复杂度
+
+## 🚀 部署架构
+
+### Docker Compose 配置
+
+```yaml
+version: '3.8'
+services:
+  vss-frontend:
+    build: ./VSS-frontend
+    ports:
+      - "3000:3000"
+    
+  vss-backend:
+    build: ./VSS-backend
+    ports:
+      - "3002:3002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    
+  inference-server:
+    build: ./inference-server
+    ports:
+      - "8084:8084"
+    environment:
+      - GPU_ENABLED=true
+    
+  net-framework-server:
+    build: ./net-framework-server
+    ports:
+      - "8085:8085"
+    
+  data-analysis-server:
+    build: ./data-analysis-server
+    ports:
+      - "8086:8086"
+    
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: vss_db
+      POSTGRES_USER: vss_user
+      POSTGRES_PASSWORD: vss_pass
+    
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
 ```
 
-#### 5. 分析报告服务 (Analytics Service)
-```
-📁 vss-analytics-service/
-├── 🎯 功能职责
-│   ├── 数据统计分析
-│   ├── 报表生成
-│   ├── 趋势分析
-│   └── 性能监控
-├── 🗄️ 数据存储
-│   ├── InfluxDB (时序数据)
-│   ├── PostgreSQL (报表配置)
-│   └── Redis (计算缓存)
-└── 🔗 API 端点
-    ├── GET /api/analytics/metrics
-    ├── POST /api/analytics/reports
-    ├── GET /api/analytics/trends
-    └── GET /api/analytics/dashboard
-```
+## � 团队协作模式
 
-### 🔧 基础设施服务
+### 开发分工
 
-#### 6. 文件服务 (File Service)
+| 团队 | 人数 | 负责服务 | 技能要求 |
+|------|------|----------|----------|
+| 前端团队 | 2人 | VSS-frontend | React, TypeScript |
+| Java团队 | 2人 | VSS-backend | Spring Boot, PostgreSQL |
+| Python AI团队 | 2人 | inference-server | FastAPI, PyTorch |
+| Go团队 | 1人 | net-framework-server | Go, Gin, 网络代理 |
+| 数据团队 | 1人 | data-analysis-server | Python, Pandas |
+
+### 开发流程
+
+1. **需求分析** - 确定服务边界和API契约
+2. **接口设计** - 定义RESTful API规范
+3. **并行开发** - 各服务独立开发测试
+4. **集成测试** - Docker Compose联合调试
+5. **部署发布** - 容器化部署上线
+
+## 📈 技术优势
+
+### 架构亮点
+
+1. **技术栈多样化** - 充分发挥各技术栈优势
+2. **服务边界清晰** - 每个服务职责明确
+3. **部署运维简单** - Docker Compose一键部署
+4. **团队协作高效** - 技能匹配度高
+
+### 扩展性设计
+
+- **水平扩展** - 支持服务实例扩容
+- **垂直扩展** - 支持功能模块拆分
+- **技术升级** - 独立服务技术栈升级
+- **团队扩展** - 支持团队规模增长
+
+---
+
+---
+
+*VSS五微服务架构设计方案 v3.0 - 2025年1月*
 ```
 📁 vss-file-service/
 ├── 🎯 功能职责
