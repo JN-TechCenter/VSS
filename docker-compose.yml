@@ -1,10 +1,10 @@
-version: '3.8'
-
 # VSS 微服务 Docker Compose 配置
 # 完整的三服务架构：前端 + 后端 + AI推理服务
 
+# 触发器配置
+#================================================================================================
 services:
-  # � Nginx 代理服务 - 统一入口点 (端口 80)
+  # 🌐 Nginx 代理服务 - 统一入口点 (端口 80)
   nginx:
     image: nginx:alpine
     container_name: vss-nginx-proxy
@@ -15,8 +15,10 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - frontend-logs:/var/log/nginx
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     networks:
       - vss-network
     restart: unless-stopped
@@ -27,7 +29,7 @@ services:
       retries: 3
       start_period: 30s
 
-  # �🎨 前端服务 (React + TypeScript)
+  # 🎨 前端服务 (React + TypeScript)
   # 仓库: https://github.com/JN-TechCenter/VSS-frontend
   frontend:
     build:
@@ -65,7 +67,8 @@ services:
     volumes:
       - frontend-logs:/var/log/nginx
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - vss-network
     restart: unless-stopped
@@ -94,13 +97,19 @@ services:
       
       # 数据库配置
       - DB_TYPE=${DB_TYPE:-postgres}
-      - DB_HOST=${DB_HOST:-database}
-      - DB_PORT=${DB_PORT:-5432}
+      - DB_HOST=database
+      - DB_PORT=5432
       - DB_NAME=${DB_NAME:-vss_production_db}
       - DB_USERNAME=${DB_USERNAME:-prod_user}
       - DB_PASSWORD=${DB_PASSWORD:-prod_password}
       - DB_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-50}
       - DB_CONNECTION_TIMEOUT=${DB_CONNECTION_TIMEOUT:-10000}
+      
+      # Redis 缓存配置
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_password}
+      - REDIS_DB=${REDIS_DB:-0}
       
       # API 配置
       - API_PREFIX=${API_PREFIX:-/api/v1}
@@ -129,7 +138,12 @@ services:
       - backend-data:/app/data
       - backend-logs:/app/logs
     depends_on:
-      - yolo-inference
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      yolo-inference:
+        condition: service_started
     networks:
       - vss-network
     restart: unless-stopped
@@ -145,7 +159,7 @@ services:
   yolo-inference:
     build:
       context: ./inference-server
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: vss-yolo-inference
     ports:
       - "${YOLO_PORT:-8084}:${YOLO_PORT:-8084}"
@@ -237,6 +251,73 @@ services:
       retries: 3
       start_period: 45s
 
+  # 🗄️ PostgreSQL 数据库服务
+  database:
+    image: postgres:15
+    container_name: vss-database
+    environment:
+      # PostgreSQL 配置
+      - POSTGRES_DB=${DB_NAME:-vss_production_db}
+      - POSTGRES_USER=${DB_USERNAME:-prod_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-prod_password}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      
+      # 性能优化
+      - POSTGRES_SHARED_PRELOAD_LIBRARIES=pg_stat_statements
+      - POSTGRES_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-100}
+      
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      # 持久化数据存储
+      - postgres-data:/var/lib/postgresql/data
+      - postgres-logs:/var/log/postgresql
+      # 初始化脚本
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - vss-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-prod_user} -d ${DB_NAME:-vss_production_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # 📝 Redis 缓存服务  
+  redis:
+    image: redis:latest
+    container_name: vss-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_password}
+    volumes:
+      # 持久化缓存数据
+      - redis-data:/data
+    networks:
+      - vss-network
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_password}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   # 📊 数据分析服务 (Python + Pandas)
   # 仓库: https://github.com/JN-TechCenter/data-analysis-server
   data-analysis-server:
@@ -254,7 +335,8 @@ services:
       - PORT=${DATA_ANALYSIS_PORT:-8086}
       
       # 数据库配置
-      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@postgres-data:5432/vss_data}
+      - DATABASE_URL=postgresql://${DB_USERNAME:-prod_user}:${DB_PASSWORD:-prod_password}@database:5432/${DB_NAME:-vss_production_db}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
       
       # 数据分析配置
       - ANALYSIS_BATCH_SIZE=${ANALYSIS_BATCH_SIZE:-1000}
@@ -269,6 +351,11 @@ services:
       - data-analysis-cache:/app/cache
       - data-analysis-logs:/app/logs
       - data-analysis-reports:/app/reports
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - vss-network
     restart: unless-stopped
@@ -280,32 +367,55 @@ services:
       start_period: 60s
 
 # 网络配置
+#================================================================================================
 networks:
   vss-network:
     driver: bridge
     name: ${DOCKER_NETWORK:-vss-network}
 
 # 数据卷配置
+#================================================================================================
 volumes:
+  # 前端相关
   frontend-logs:
     name: vss-frontend-logs
+    
+  # 后端相关
   backend-data:
     name: vss-backend-data
   backend-logs:
     name: vss-backend-logs
+    
+  # YOLO推理服务相关
   yolo-cache:
     name: vss-yolo-cache
   yolo-logs:
     name: vss-yolo-logs
   yolo-models:
     name: vss-yolo-models
+    
+  # .NET框架服务相关
   net-logs:
     name: vss-net-logs
   net-data:
     name: vss-net-data
+    
+  # 数据分析服务相关
   data-analysis-cache:
     name: vss-data-analysis-cache
   data-analysis-logs:
     name: vss-data-analysis-logs
   data-analysis-reports:
     name: vss-data-analysis-reports
+    
+  # PostgreSQL 数据库持久化存储
+  postgres-data:
+    name: vss-postgres-data
+    driver: local
+  postgres-logs:
+    name: vss-postgres-logs
+    
+  # Redis 缓存持久化存储
+  redis-data:
+    name: vss-redis-data
+    driver: local
