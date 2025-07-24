@@ -27,6 +27,19 @@ if "%~1"=="pull" (
 )
 
 if "%~1"=="push" (
+    set AUTO_MODE=1
+    call :push_all
+    goto :eof
+)
+
+if "%~1"=="push-auto" (
+    set AUTO_MODE=1
+    call :push_all
+    goto :eof
+)
+
+if "%~1"=="push-interactive" (
+    set AUTO_MODE=0
     call :push_all
     goto :eof
 )
@@ -69,20 +82,26 @@ goto :eof
 echo Usage: git-manage.bat [command]
 echo.
 echo Available commands:
-echo   pull        - Pull main repository and all submodules
-echo   push        - Push main repository and all submodules
-echo   pull-main   - Pull main repository only
-echo   push-main   - Push main repository only
-echo   pull-subs   - Pull all submodules only
-echo   push-subs   - Push all submodules only
-echo   status      - Check status of main repository and submodules
-echo   sync        - Sync all repositories to latest state
-echo   help        - Show this help information
+echo   pull            - Pull main repository and all submodules
+echo   push            - Push main repository and all submodules (auto mode)
+echo   push-auto       - Push with automatic commit messages (no interaction)
+echo   push-interactive- Push with interactive commit message input
+echo   pull-main       - Pull main repository only
+echo   push-main       - Push main repository only
+echo   pull-subs       - Pull all submodules only
+echo   push-subs       - Push all submodules only
+echo   status          - Check status of main repository and submodules
+echo   sync            - Sync all repositories to latest state
+echo   help            - Show this help information
 echo.
 echo Examples:
-echo   git-manage.bat pull     # Pull all repositories
-echo   git-manage.bat push     # Push all repositories
-echo   git-manage.bat status   # Check status
+echo   git-manage.bat pull           # Pull all repositories
+echo   git-manage.bat push           # Push all (auto mode, no prompts)
+echo   git-manage.bat push-auto      # Push all (auto mode, no prompts)
+echo   git-manage.bat push-interactive # Push all (with commit message prompts)
+echo   git-manage.bat status         # Check status
+echo.
+echo Note: Default 'push' command now runs in auto mode for one-step operation
 echo.
 goto :eof
 
@@ -146,27 +165,38 @@ goto :eof
 :push_main_only
 echo [INFO] Pushing main repository...
 
-:: Check for changes
-git status --porcelain >nul 2>&1
+:: First, add all files (including new untracked files)
+echo [INFO] Adding all files (including new files)...
+git add .
 if errorlevel 1 (
-    echo [ERROR] Cannot check Git status
+    echo [ERROR] Failed to add files
     exit /b 1
 )
 
+:: Check for changes after adding
 for /f %%i in ('git status --porcelain 2^>nul ^| find /c /v ""') do set changes=%%i
 
 if !changes! gtr 0 (
-    echo [INFO] Detected uncommitted changes, committing...
-    git add .
+    echo [INFO] Detected changes to commit...
     
-    set /p commit_msg="Enter commit message (press Enter for default): "
-    if "!commit_msg!"=="" set commit_msg=Auto commit from git-manage script
+    if "!AUTO_MODE!"=="0" (
+        :: Interactive mode - ask for commit message
+        set /p commit_msg="Enter commit message (press Enter for default): "
+        if "!commit_msg!"=="" set commit_msg=Auto commit from git-manage script
+    ) else (
+        :: Auto mode - generate automatic commit message
+        set commit_msg=Auto commit from git-manage script - %date% %time%
+    )
     
+    echo [INFO] Committing with message: !commit_msg!
     git commit -m "!commit_msg!"
     if errorlevel 1 (
         echo [ERROR] Commit failed
         exit /b 1
     )
+    echo [SUCCESS] Changes committed successfully
+) else (
+    echo [INFO] No changes to commit
 )
 
 git push origin main
@@ -212,16 +242,30 @@ if not exist "%sub_path%" (
 echo [INFO] Processing submodule: %sub_path%
 pushd "%sub_path%"
 
-:: Check for changes
+:: Add all files first (including new untracked files)
+git add .
+if errorlevel 1 (
+    echo [WARNING] Failed to add files in submodule %sub_path%
+    popd
+    goto :eof
+)
+
+:: Check for changes after adding
 for /f %%i in ('git status --porcelain 2^>nul ^| find /c /v ""') do set sub_changes=%%i
 
 if !sub_changes! gtr 0 (
     echo [INFO] Submodule %sub_path% has changes, committing...
-    git add .
     
-    set /p sub_commit_msg="Enter commit message for submodule %sub_path% (press Enter for default): "
-    if "!sub_commit_msg!"=="" set sub_commit_msg=Auto commit from git-manage script
+    if "!AUTO_MODE!"=="0" (
+        :: Interactive mode - ask for commit message
+        set /p sub_commit_msg="Enter commit message for submodule %sub_path% (press Enter for default): "
+        if "!sub_commit_msg!"=="" set sub_commit_msg=Auto commit from git-manage script
+    ) else (
+        :: Auto mode - generate automatic commit message
+        set sub_commit_msg=Auto commit from git-manage script - %date% %time%
+    )
     
+    echo [INFO] Committing submodule with message: !sub_commit_msg!
     git commit -m "!sub_commit_msg!"
     if errorlevel 1 (
         echo [ERROR] Submodule %sub_path% commit failed
