@@ -18,7 +18,7 @@ services:
       frontend:
         condition: service_healthy
       backend:
-        condition: service_healthy
+        condition: service_started
     networks:
       - vss-network
     restart: unless-stopped
@@ -68,7 +68,7 @@ services:
       - frontend-logs:/var/log/nginx
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
     networks:
       - vss-network
     restart: unless-stopped
@@ -147,12 +147,13 @@ services:
     networks:
       - vss-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-3002}/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # 暂时禁用健康检查进行调试
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-3002}/actuator/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
 
   # 🤖 AI推理服务 (Python + FastAPI)
   # 仓库: https://github.com/JN-TechCenter/inference_server

@@ -2,6 +2,12 @@
 chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
+:: Add Git to PATH if not already available
+set "GIT_PATH=D:\Git\cmd"
+if not "%PATH:D:\Git\cmd=%"=="%PATH%" goto :git_found
+set "PATH=%GIT_PATH%;%PATH%"
+:git_found
+
 :: VSS Git Management Tool
 :: Unified Git operations for main repository and submodules
 
@@ -174,7 +180,8 @@ if errorlevel 1 (
 )
 
 :: Check for changes after adding
-for /f %%i in ('git status --porcelain 2^>nul ^| find /c /v ""') do set changes=%%i
+for /f %%i in ('git status --porcelain 2^>nul') do set /a changes+=1
+if not defined changes set changes=0
 
 if !changes! gtr 0 (
     echo [INFO] Detected changes to commit...
@@ -251,7 +258,8 @@ if errorlevel 1 (
 )
 
 :: Check for changes after adding
-for /f %%i in ('git status --porcelain 2^>nul ^| find /c /v ""') do set sub_changes=%%i
+for /f %%i in ('git status --porcelain 2^>nul') do set /a sub_changes+=1
+if not defined sub_changes set sub_changes=0
 
 if !sub_changes! gtr 0 (
     echo [INFO] Submodule %sub_path% has changes, committing...
@@ -334,7 +342,8 @@ for /f "tokens=2" %%i in ('git submodule status 2^>nul') do (
     git add "%%i"
 )
 
-for /f %%i in ('git status --porcelain 2^>nul ^| find /c /v ""') do set sync_changes=%%i
+for /f %%i in ('git status --porcelain 2^>nul') do set /a sync_changes+=1
+if not defined sync_changes set sync_changes=0
 if !sync_changes! gtr 0 (
     git commit -m "Update submodule references"
     git push origin main
