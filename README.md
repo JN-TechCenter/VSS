@@ -1,14 +1,25 @@
-# VSS (Vision System Studio)
+# VSS Vision Platform
 
-> **现代化的视觉系统开发平台** - 集成前端、后端和容器化部署的完整解决方案
+<div align="center">
 
-![VSS](https://img.shields.io/badge/VSS-v1.0-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-支持-green.svg)
-![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)
-![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)
-![Go](https://img.shields.io/badge/Go-1.19+-cyan.svg)
-![.NET](https://img.shields.io/badge/.NET-Core-purple.svg)
+![VSS Logo](https://via.placeholder.com/200x80/4A90E2/FFFFFF?text=VSS+Vision)
+
+**🚀 现代化视觉检测平台 | 企业级微服务架构**
+
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.8-6DB33F?style=flat-square&logo=spring-boot)](https://spring.io/projects/spring-boot)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-Latest-DC382D?style=flat-square&logo=redis)](https://redis.io/)
+
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square)](https://github.com/JN-TechCenter/VSS)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=flat-square)](https://github.com/JN-TechCenter/VSS/releases)
+
+</div>
+
+---
 
 ## 🚀 快速开始
 
@@ -97,64 +108,114 @@ VSS (Vision System Studio) 是一个现代化的机器视觉数据分析平台�
 
 ## 🏗️ 系统架构
 
-### 5服务极简架构
+### 📦 微服务组件
 
-```mermaid
-graph TB
-    subgraph "🌐 前端层"
-        A[React前端应用<br/>TypeScript + Vite]
-    end
-    
-    subgraph "⚡ 微服务层"
-        B[☕ Java业务服务<br/>Spring Boot + JPA]
-        C[🐍 Python AI服务<br/>FastAPI + PyTorch]
-        D[⚡ Go网络服务<br/>Gin + WebSocket]
-        E[🔷 .NET框架服务<br/>ASP.NET Core]
-        F[📊 数据分析服务<br/>Python + Pandas]
-    end
-    
-    subgraph "💾 数据层"
-        G[PostgreSQL<br/>主数据库]
-        H[Redis<br/>缓存集群]
-    end
-    
-    A --> B
-    A --> C
-    A --> D
-    A --> E
-    A --> F
-    
-    B --> G
-    C --> G
-    D --> G
-    E --> G
-    F --> G
-    
-    B --> H
-    C --> H
-    D --> H
-    
-    style A fill:#e1f5fe
-    style B fill:#fce4ec
-    style C fill:#e8f5e8
-    style D fill:#fff3e0
-    style E fill:#f3e5f5
-    style F fill:#fff8e1
-    style G fill:#e0f2f1
-    style H fill:#ffebee
 ```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Nginx 代理     │    │   前端应用       │    │   后端API       │
+│   (端口 80)      │◄──►│   (React)       │◄──►│   (Spring Boot) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   AI推理服务     │    │   网络服务       │    │   数据分析服务   │
+│   (FastAPI)     │    │   (.NET)        │    │   (Python)      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 ▼
+                    ┌─────────────────┐    ┌─────────────────┐
+                    │   PostgreSQL    │    │     Redis       │
+                    │   (数据库)       │    │    (缓存)       │
+                    └─────────────────┘    └─────────────────┘
+```
+
+### 🔧 技术栈详情
+
+| 组件 | 技术栈 | 版本 | 端口 | 状态 |
+|------|--------|------|------|---------|
+| **前端** | React + Vite + TypeScript | 18.2.0 | 3000 | ✅ 完整 |
+| **后端** | Spring Boot + Java | 3.2.8 / 17 | 3002 | ✅ 完整 |
+| **AI推理** | FastAPI + MindSpore | 0.100+ | 8084 | ✅ 完整 |
+| **网络服务** | .NET Framework | - | 8085 | 🚧 基础 |
+| **数据分析** | Python + Flask | - | 8086 | 🚧 基础 |
+| **代理** | Nginx | Alpine | 80/443 | ✅ 完整 |
+| **数据库** | PostgreSQL | 15 | 5432 | ✅ 完整 |
+| **缓存** | Redis | Latest | 6379 | ✅ 完整 |
+
+---
+
+## 🛠️ 开发指南
+
+### 📁 项目结构
+
+```
+VSS/
+├── VSS-frontend/          # React前端应用
+│   ├── src/              # 源代码
+│   ├── public/           # 静态资源
+│   ├── package.json      # 依赖配置
+│   └── Dockerfile        # 容器配置
+├── VSS-backend/          # Spring Boot后端
+│   ├── src/              # Java源代码
+│   ├── pom.xml           # Maven配置
+│   └── Dockerfile        # 容器配置
+├── inference-server/     # AI推理服务
+│   ├── app/              # Python应用
+│   ├── requirements.txt  # Python依赖
+│   └── docker/           # 容器配置
+├── net-framework-server/ # .NET网络服务
+├── data-analysis-server/ # 数据分析服务
+├── nginx/                # Nginx配置
+├── database/             # 数据库初始化
+├── scripts/              # 脚本工具
+├── docs/                 # 项目文档
+└── docker-compose.yml    # 容器编排
+```
+
+### 🔨 本地开发
+
+#### 前端开发
+```bash
+cd VSS-frontend
+npm install
+npm run dev
+# 访问: http://localhost:3000
+```
+
+#### 后端开发
+```bash
+cd VSS-backend
+./mvnw spring-boot:run
+# 访问: http://localhost:3002
+```
+
+#### AI推理服务开发
+```bash
+cd inference-server
+pip install -r requirements.txt
+python app/main.py
+# 访问: http://localhost:8084
+```
+
+---
 
 ### 🎯 核心技术栈
 
-| 层级 | 技术选型 | 核心优势 |
-|------|----------|----------|
-| **前端** | React + TypeScript + Vite | 现代化开发体验，类型安全 |
-| **业务服务** | Java + Spring Boot | 企业级稳定性，生态成熟 |
-| **AI服务** | Python + FastAPI | AI生态丰富，快速迭代 |
-| **网络服务** | Go + Gin | 高并发，低延迟 |
-| **框架服务** | .NET Core | 跨平台，高性能 |
-| **数据分析** | Python + Pandas | 数据处理专业 |
-| **数据存储** | PostgreSQL + Redis | 功能全面 + 高性能缓存 |
+| 层级 | 技术选型 | 版本要求 | 说明 |
+|------|----------|----------|------|
+| **前端框架** | React + TypeScript | 18.2.0+ | 现代化UI框架 |
+| **构建工具** | Vite | 4.4.0+ | 极速开发体验 |
+| **UI组件库** | Ant Design | 5.8.0+ | 企业级组件 |
+| **后端框架** | Spring Boot | 3.2.8+ | Java企业级框架 |
+| **数据访问** | Spring Data JPA | 3.2.8+ | ORM框架 |
+| **AI推理** | FastAPI + PyTorch | 0.100+ | 高性能AI服务 |
+| **网络服务** | Go + Gin | 1.21+ | 高并发处理 |
+| **数据分析** | Python + Pandas | 3.9+ | 数据处理 |
+| **数据库** | PostgreSQL | 15+ | 关系型数据库 |
+| **缓存** | Redis | 7+ | 内存数据库 |
+| **容器化** | Docker + Compose | 20.10+ | 容器编排 |
+| **反向代理** | Nginx | Alpine | 负载均衡 |
 
 ## 📁 项目结构
 
@@ -191,33 +252,161 @@ VSS/
 
 > **💡 提示**: 点击上方的文件夹路径可以直接跳转到对应的子模块目录！
 
-## 🔧 脚本工具
+## 🛠️ 脚本工具
 
-VSS 提供了强大的脚本工具集，简化开发和运维操作：
+项目提供了便捷的脚本工具来简化开发和部署流程：
 
-| 脚本 | 功能 | 使用场景 |
-|------|------|----------|
-| **quick-start.bat** | 一键启动开发环境 | 项目初始化、日常开发 |
-| **git-manage.bat** | Git统一管理工具 | 代码提交、推送、状态检查 |
+### 📁 可用脚本
+
+```
+scripts/
+├── README.md           # 脚本说明文档
+├── git-manage.bat      # Git子模块管理
+└── quick-start.bat     # 快速启动脚本
+```
+
+### 🔧 脚本使用
+
+#### Git 子模块管理
+```bash
+# Windows
+scripts\git-manage.bat
+
+# 功能：
+# - 初始化所有子模块
+# - 更新子模块到最新版本
+# - 重置子模块状态
+```
+
+#### 快速启动
+```bash
+# Windows
+scripts\quick-start.bat
+
+# 功能：
+# - 检查Docker环境
+# - 启动所有服务
+# - 显示访问地址
+```
 
 ### Git 管理工具使用
 
 ```bash
-# 一步式提交推送 (自动模式)
-.\scripts\git-manage.bat push
+# Windows 环境
+scripts\git-manage.bat
 
-# 交互式提交推送 (手动输入提交信息)
-.\scripts\git-manage.bat push-interactive
-
-# 拉取所有仓库更新
-.\scripts\git-manage.bat pull
-
-# 检查所有仓库状态
-.\scripts\git-manage.bat status
-
-# 同步所有仓库到最新状态
-.\scripts\git-manage.bat sync
+# 选择操作：
+# 1. 查看所有仓库状态
+# 2. 拉取最新代码
+# 3. 提交所有更改
+# 4. 推送到远程仓库
+# 5. 创建新分支
+# 6. 切换分支
+# 7. 合并分支
 ```
+
+### 快速启动工具
+
+```bash
+# Windows 环境
+scripts\quick-start.bat
+
+# 自动执行：
+# ✅ 检查 Docker 环境
+# ✅ 启动数据库服务
+# ✅ 启动后端服务
+# ✅ 启动前端服务
+# ✅ 启动AI推理服务
+# ✅ 显示访问地址
+```
+
+---
+
+## 📚 文档中心
+
+VSS 提供了完整的文档体系，涵盖从架构设计到运维部署的各个方面：
+
+### 📖 文档分类
+
+```
+docs/
+├── 01-architecture/     # 🏗️ 系统架构设计
+├── 02-api-design/       # 🔌 API接口设计
+├── 03-database/         # 🗄️ 数据库设计
+├── 04-deployment/       # 🚀 部署运维指南
+├── 05-development/      # 💻 开发环境配置
+├── 06-services/         # ⚙️ 微服务详解
+├── 07-operations/       # 🔧 运维监控指南
+├── 08-guides/           # 📋 使用指南
+└── 09-archive/          # 📦 历史文档归档
+```
+
+### 🎯 快速导航
+
+| 文档类型 | 描述 | 适用人群 |
+|----------|------|----------|
+| **[架构设计](./docs/01-architecture/)** | 系统整体架构、技术选型 | 架构师、技术负责人 |
+| **[API设计](./docs/02-api-design/)** | RESTful API规范、接口文档 | 前后端开发者 |
+| **[数据库设计](./docs/03-database/)** | 数据模型、表结构设计 | 后端开发者、DBA |
+| **[部署指南](./docs/04-deployment/)** | 生产环境部署、运维配置 | 运维工程师、DevOps |
+| **[开发指南](./docs/05-development/)** | 开发环境搭建、编码规范 | 开发者 |
+| **[服务详解](./docs/06-services/)** | 各微服务功能、配置说明 | 开发者、运维 |
+| **[运维监控](./docs/07-operations/)** | 监控告警、日志分析 | 运维工程师 |
+| **[使用指南](./docs/08-guides/)** | 用户手册、最佳实践 | 最终用户、产品经理 |
+
+> **💡 提示**: 点击上方的文档链接可以直接跳转到对应的文档目录！
+
+## 🔍 故障排除
+
+### 常见问题
+
+#### Docker 相关
+```bash
+# 问题：Docker 服务未启动
+# 解决：启动 Docker Desktop 或 Docker 服务
+
+# 问题：端口被占用
+# 解决：修改 docker-compose.yml 中的端口配置
+
+# 问题：镜像构建失败
+# 解决：清理 Docker 缓存
+docker system prune -a
+```
+
+#### 子模块相关
+```bash
+# 问题：子模块更新失败
+# 解决：重新初始化子模块
+git submodule deinit --all -f
+git submodule update --init --recursive
+
+# 问题：子模块指向错误的提交
+# 解决：更新子模块到最新版本
+git submodule foreach git pull origin main
+```
+
+#### 服务启动相关
+```bash
+# 问题：服务启动超时
+# 解决：增加健康检查等待时间
+
+# 问题：数据库连接失败
+# 解决：检查数据库服务状态和连接配置
+
+# 问题：AI服务内存不足
+# 解决：调整 Docker 内存限制
+```
+
+### 获取帮助
+
+如果遇到问题，请按以下顺序寻求帮助：
+
+1. **查看日志**: `docker-compose logs [service-name]`
+2. **检查文档**: 查看相关文档目录
+3. **搜索Issues**: 在GitHub Issues中搜索类似问题
+4. **提交Issue**: 如果问题未解决，请提交新的Issue
+
+详细部署指南请参考：[部署文档](./docs/04-deployment/README.md)
 
 ## 📚 文档导航
 
@@ -280,52 +469,54 @@ VSS项目采用Git子模块架构，5个核心服务独立开发和部署：
 - 更新相关文档说明
 - 确保所有测试通过后再提交PR
 
-## 🚀 生产部署
+## 🚀 部署指南
 
-VSS 支持多种部署方式，满足不同环境需求：
+### 🐳 Docker 容器化部署
 
-### 🐳 Docker 容器化部署（推荐）
-
+#### 生产环境部署
 ```bash
-# 生产环境部署
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-# 开发环境部署
+# 构建并启动所有服务
 docker-compose up -d
 
 # 查看服务状态
 docker-compose ps
 
-# 查看日志
-docker-compose logs -f
+# 查看服务日志
+docker-compose logs -f [service-name]
+
+# 停止所有服务
+docker-compose down
 ```
 
-### ☁️ 云平台部署
-
+#### 开发环境部署
 ```bash
-# Vercel 前端部署
-vercel --prod
+# 使用开发配置启动
+docker-compose -f docker-compose.yml up -d
 
-# Docker Hub 镜像推送
-docker-compose build
-docker-compose push
+# 重新构建特定服务
+docker-compose build [service-name]
+docker-compose up -d [service-name]
 ```
 
-### 🔧 手动部署
+### 📊 服务监控
 
+#### 健康检查
 ```bash
-# 前端构建
-cd VSS-frontend
-npm run build
+# 检查所有服务健康状态
+curl http://localhost/health          # Nginx代理
+curl http://localhost:3002/actuator/health  # 后端API
+curl http://localhost:8084/health     # AI推理服务
+curl http://localhost:8085/health     # 网络服务
+curl http://localhost:8086/health     # 数据分析服务
+```
 
-# 后端构建
-cd VSS-backend
-./mvnw clean package -DskipTests
-
-# AI服务部署
-cd inference-server
-pip install -r requirements.txt
-python app/main.py
+#### 日志查看
+```bash
+# 查看特定服务日志
+docker-compose logs -f frontend
+docker-compose logs -f backend
+docker-compose logs -f yolo-inference
+docker-compose logs -f database
 ```
 
 ### 📊 部署验证
@@ -338,81 +529,22 @@ python app/main.py
 
 详细部署指南请参考：[部署文档](./docs/04-deployment/README.md)
 
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE) 开源协议。
+
 ## 📞 联系方式
 
-- **📂 项目仓库**: [VSS GitHub Repository](https://github.com/JN-TechCenter/VSS)
-- **🐛 问题反馈**: [GitHub Issues](https://github.com/JN-TechCenter/VSS/issues)  
-- **📖 技术文档**: [项目文档中心](./docs/README.md)
-- **🔧 脚本工具**: [脚本使用指南](./scripts/README.md)
-- **💬 讨论交流**: [GitHub Discussions](https://github.com/JN-TechCenter/VSS/discussions)
-- **📧 邮件联系**: [support@jn-techcenter.com](mailto:support@jn-techcenter.com)
-
-## 📈 项目状态
-
-### 🎯 开发进度
-
-- ✅ **基础架构**: 微服务架构设计完成
-- ✅ **前端应用**: React + TypeScript 现代化界面
-- ✅ **后端服务**: Spring Boot 企业级API服务
-- ✅ **AI推理**: Python FastAPI 智能推理服务
-- ✅ **容器化**: Docker 一键部署方案
-- ✅ **文档体系**: 完整的9类文档分类，覆盖架构到运维
-- ✅ **脚本工具**: 一键启动、Git统一管理、自动化部署
-- 🔄 **持续集成**: GitHub Actions自动化CI/CD
-- 🔄 **监控体系**: 健康检查、日志聚合、性能监控
-- 📋 **测试覆盖**: 单元测试、集成测试、E2E测试
-
-### 📊 技术指标
-
-| 指标 | 当前状态 | 目标 |
-|------|----------|------|
-| **代码覆盖率** | 75% | 90% |
-| **构建时间** | < 5分钟 | < 3分钟 |
-| **启动时间** | < 30秒 | < 20秒 |
-| **响应时间** | < 200ms | < 100ms |
-| **并发用户** | 1000+ | 5000+ |
-
-### 🗓️ 版本规划
-
-- **v1.0** (当前): 基础功能完整，生产可用
-- **v1.1** (计划): 性能优化，监控增强
-- **v1.2** (计划): 微服务治理，服务网格
-- **v2.0** (规划): AI能力增强，智能化运维
-
-## 🤝 参与贡献
-
-我们欢迎所有形式的贡献！无论是代码、文档、测试还是建议，都能帮助VSS变得更好。
-
-### 🔄 贡献流程
-
-1. **Fork** 本仓库到您的 GitHub
-2. **创建** 特性分支 (`git checkout -b feature/AmazingFeature`)  
-3. **提交** 您的修改 (`git commit -m 'Add: 添加了令人惊艳的功能'`)
-4. **推送** 到分支 (`git push origin feature/AmazingFeature`)
-5. **提交** Pull Request
-
-### 🎯 贡献指南
-
-- 遵循现有的代码风格和命名规范
-- 为新功能添加相应的测试用例
-- 更新相关文档说明
-- 确保所有测试通过后再提交PR
-- 参与代码审查和讨论
-
-### 🏆 贡献者
-
-感谢所有为VSS项目做出贡献的开发者！
-
-[![Contributors](https://contrib.rocks/image?repo=JN-TechCenter/VSS)](https://github.com/JN-TechCenter/VSS/graphs/contributors)
+- **项目仓库**: [GitHub - VSS](https://github.com/JN-TechCenter/VSS)
+- **问题反馈**: [Issues](https://github.com/JN-TechCenter/VSS/issues)
+- **功能建议**: [Discussions](https://github.com/JN-TechCenter/VSS/discussions)
 
 ---
 
 <div align="center">
 
-**🌟 如果这个项目对您有帮助，请点个 Star 支持我们！**
+**⭐ 如果这个项目对你有帮助，请给我们一个 Star！**
 
-*📅 最后更新: 2024-12-19 | 🏷️ 版本: v1.0 | 💻 Made with ❤️ by JN-TechCenter*
-
-[![Star History Chart](https://api.star-history.com/svg?repos=JN-TechCenter/VSS&type=Date)](https://star-history.com/#JN-TechCenter/VSS&Date)
+Made with ❤️ by [JN-TechCenter](https://github.com/JN-TechCenter)
 
 </div>
