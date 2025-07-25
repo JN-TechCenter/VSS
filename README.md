@@ -149,8 +149,9 @@ VSS/
 ### 快速开始
 
 ```bash
-# 1. 克隆项目
-git clone https://github.com/JN-TechCenter/VSS.git
+# 1. 完整克隆项目（包含所有子模块）
+git clone --recursive https://github.com/JN-TechCenter/VSS.git
+
 cd VSS
 
 # 2. 一键启动开发环境
