@@ -11,6 +11,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - frontend-logs:/var/log/nginx
@@ -128,7 +129,7 @@ services:
       
       # 安全配置
       - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost,http://localhost:80,http://localhost:3000}
       
       # 生产环境特性
       - PROD_OPTIMIZE=${PROD_OPTIMIZE:-true}
@@ -361,7 +362,73 @@ services:
       - vss-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${DATA_ANALYSIS_PORT:-8086}/health", "||", "exit", "0"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${DATA_ANALYSIS_PORT:-8086}/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 🔧 脚本编排服务 (Python + FastAPI)
+  # 仓库: https://github.com/JN-TechCenter/script-orchestration-server
+  script-orchestration-server:
+    build:
+      context: ./script-orchestration-server
+      dockerfile: Dockerfile
+    container_name: vss-script-orchestration-server
+    ports:
+      - "${SCRIPT_ORCHESTRATION_PORT:-8087}:${SCRIPT_ORCHESTRATION_PORT:-8087}"
+    environment:
+      # 服务基础配置
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-False}
+      - HOST=${SCRIPT_ORCHESTRATION_HOST:-0.0.0.0}
+      - PORT=${SCRIPT_ORCHESTRATION_PORT:-8087}
+      
+      # 数据库配置
+      - DATABASE_URL=postgresql://${DB_USERNAME:-prod_user}:${DB_PASSWORD:-prod_password}@database:5432/${DB_NAME:-vss_production_db}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/2
+      
+      # 脚本执行配置
+      - SCRIPT_TIMEOUT=${SCRIPT_TIMEOUT:-300}
+      - MAX_CONCURRENT_SCRIPTS=${MAX_CONCURRENT_SCRIPTS:-10}
+      - SCRIPT_STORAGE_PATH=/app/scripts
+      
+      # 外部服务配置
+      - BACKEND_SERVICE_URL=http://backend:3002
+      - AI_SERVICE_URL=http://yolo-inference:8084
+      - DATA_ANALYSIS_SERVICE_URL=http://data-analysis-server:8086
+      
+      # JWT配置
+      - JWT_SECRET=${JWT_SECRET:-script_orchestration_secret}
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_MINUTES=1440
+      
+      # 日志配置
+      - LOG_LEVEL=${SCRIPT_ORCHESTRATION_LOG_LEVEL:-INFO}
+      - LOG_FILE=${SCRIPT_ORCHESTRATION_LOG_FILE:-/app/logs/script_orchestration.log}
+      
+    volumes:
+      - script-orchestration-scripts:/app/scripts
+      - script-orchestration-logs:/app/logs
+      - script-orchestration-data:/app/data
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - vss-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${SCRIPT_ORCHESTRATION_PORT:-8087}/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -408,6 +475,14 @@ volumes:
     name: vss-data-analysis-logs
   data-analysis-reports:
     name: vss-data-analysis-reports
+    
+  # 脚本编排服务相关
+  script-orchestration-scripts:
+    name: vss-script-orchestration-scripts
+  script-orchestration-logs:
+    name: vss-script-orchestration-logs
+  script-orchestration-data:
+    name: vss-script-orchestration-data
     
   # PostgreSQL 数据库持久化存储
   postgres-data:

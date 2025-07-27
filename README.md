@@ -1,23 +1,155 @@
-# VSS Vision Platform
+# 🔍 VSS 机器视觉数据分析平台
 
-<div align="center">
+## 📖 项目简介
 
-![VSS Logo](https://via.placeholder.com/200x80/4A90E2/FFFFFF?text=VSS+Vision)
+VSS (Vision System Suite) 是一个基于AI的机器视觉数据分析平台，集成了目标检测、图像分析、实时推理等功能。
 
-**🚀 现代化视觉检测平台 | 企业级微服务架构**
+## 🚀 快速开始
 
-[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.8-6DB33F?style=flat-square&logo=spring-boot)](https://spring.io/projects/spring-boot)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-Latest-DC382D?style=flat-square&logo=redis)](https://redis.io/)
+### 方式一：一键启动（推荐）
+双击运行 `start-all-services.bat` 脚本，自动启动所有服务。
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square)](https://github.com/JN-TechCenter/VSS)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-orange?style=flat-square)](https://github.com/JN-TechCenter/VSS/releases)
+### 方式二：手动启动
+```bash
+# 1. 启动AI推理服务
+cd inference-server/app
+python main.py
 
-</div>
+# 2. 启动后端服务
+cd VSS-backend
+./mvnw.cmd spring-boot:run
+
+# 3. 启动前端服务
+cd VSS-frontend
+npm run dev
+```
+
+### 停止服务
+双击运行 `stop-all-services.bat` 脚本，停止所有服务。
+
+## 🌐 访问地址
+
+| 服务 | 地址 | 说明 |
+|------|------|------|
+| 🎨 前端应用 | http://localhost:3000 | 主应用界面 |
+| 🤖 AI推理页面 | http://localhost:3000/ai-inference | AI功能页面 |
+| 🧪 AI测试页面 | http://localhost:3000/ai-test.html | 独立测试页面 |
+| ⚙️ 后端API | http://localhost:3002 | REST API服务 |
+| 🔍 AI推理API | http://localhost:8000 | AI推理服务 |
+
+## 🎯 主要功能
+
+### 1. AI智能推理
+- **图片检测**: 上传图片进行目标检测
+- **实时检测**: 摄像头实时目标检测
+- **模型配置**: 支持多种YOLO模型
+- **结果管理**: 检测历史和结果下载
+
+### 2. 设备管理
+- 设备状态监控
+- 设备配置管理
+- 实时数据采集
+
+### 3. 视频流管理
+- 多路视频流接入
+- 实时画面监控
+- 录像回放功能
+
+### 4. 数据分析
+- 检测结果统计
+- 趋势分析图表
+- 报表生成导出
+
+## 🛠️ 技术架构
+
+### 前端技术栈
+- **React 18** - 用户界面框架
+- **TypeScript** - 类型安全的JavaScript
+- **Ant Design** - UI组件库
+- **Vite** - 构建工具
+
+### 后端技术栈
+- **Spring Boot 3** - Java后端框架
+- **Spring Security** - 安全认证
+- **H2 Database** - 内存数据库
+- **Maven** - 依赖管理
+
+### AI推理服务
+- **FastAPI** - Python Web框架
+- **YOLOv8** - 目标检测模型
+- **OpenCV** - 图像处理
+- **Uvicorn** - ASGI服务器
+
+## 📋 系统要求
+
+### 软件环境
+- **Node.js** 16+ (前端)
+- **Java** 17+ (后端)
+- **Python** 3.8+ (AI服务)
+- **Git** (版本控制)
+
+### 硬件要求
+- **内存**: 8GB+ 推荐
+- **存储**: 10GB+ 可用空间
+- **GPU**: 可选，用于AI推理加速
+
+## 🔧 开发指南
+
+### 项目结构
+```
+VSS/
+├── VSS-frontend/          # 前端React应用
+├── VSS-backend/           # 后端Spring Boot应用
+├── inference-server/      # AI推理服务
+├── nginx/                 # Nginx配置
+├── docker-compose.yml     # Docker编排
+├── start-all-services.bat # 启动脚本
+└── stop-all-services.bat  # 停止脚本
+```
+
+### 开发环境配置
+1. 克隆项目到本地
+2. 安装各服务依赖
+3. 配置环境变量
+4. 启动开发服务
+
+### API文档
+- 后端API: http://localhost:3002/swagger-ui.html
+- AI推理API: http://localhost:8000/docs
+
+## 🐛 故障排除
+
+### 常见问题
+
+**Q: 服务启动失败？**
+A: 检查端口是否被占用，确保依赖已正确安装。
+
+**Q: AI推理服务无响应？**
+A: 确认Python环境和模型文件是否正确配置。
+
+**Q: 前端页面无法访问？**
+A: 检查Node.js版本和npm依赖安装情况。
+
+### 日志查看
+- 前端日志: 浏览器开发者工具
+- 后端日志: VSS-backend/logs/
+- AI服务日志: 控制台输出
+
+## 📞 技术支持
+
+如遇到问题，请检查：
+1. 系统要求是否满足
+2. 依赖是否正确安装
+3. 端口是否被占用
+4. 防火墙设置
+
+## 📄 许可证
+
+本项目采用 MIT 许可证。
+
+---
+
+*最后更新: 2025-07-27*
 
 ---
 

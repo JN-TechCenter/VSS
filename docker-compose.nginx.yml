@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: vss-nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-proxy.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - vss-network
+    depends_on:
+      - frontend-check
+      - backend-check
+      - ai-check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 健康检查服务 - 确保上游服务可用
+  frontend-check:
+    image: curlimages/curl:latest
+    container_name: vss-frontend-check
+    command: >
+      sh -c "
+        echo 'Waiting for frontend service...'
+        until curl -f http://host.docker.internal:3000 >/dev/null 2>&1; do
+          echo 'Frontend not ready, waiting...'
+          sleep 5
+        done
+        echo 'Frontend service is ready!'
+        sleep infinity
+      "
+    networks:
+      - vss-network
+    restart: "no"
+
+  backend-check:
+    image: curlimages/curl:latest
+    container_name: vss-backend-check
+    command: >
+      sh -c "
+        echo 'Waiting for backend service...'
+        until curl -f http://host.docker.internal:3002/actuator/health >/dev/null 2>&1; do
+          echo 'Backend not ready, waiting...'
+          sleep 5
+        done
+        echo 'Backend service is ready!'
+        sleep infinity
+      "
+    networks:
+      - vss-network
+    restart: "no"
+
+  ai-check:
+    image: curlimages/curl:latest
+    container_name: vss-ai-check
+    command: >
+      sh -c "
+        echo 'Waiting for AI inference service...'
+        until curl -f http://host.docker.internal:8000/health >/dev/null 2>&1; do
+          echo 'AI service not ready, waiting...'
+          sleep 5
+        done
+        echo 'AI inference service is ready!'
+        sleep infinity
+      "
+    networks:
+      - vss-network
+    restart: "no"
+
+networks:
+  vss-network:
+    driver: bridge
+    name: vss-network
