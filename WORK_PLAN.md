@@ -17,7 +17,7 @@ VSS (Vision Surveillance System) 是一个基于微服务架构的智能视觉�
 
 ## 当前状态 ✅ 已完成
 
-### 阶段1: 基础架构部署 ✅ 完成 (2025-07-30)
+### 阶段1: 基础架构部署 ✅ 完成 (2025-08-04)
 
 #### 1.1 Docker容器化 ✅
 - [x] 前端服务 (React + Vite) - 端口3000
@@ -78,20 +78,43 @@ VSS (Vision Surveillance System) 是一个基于微服务架构的智能视觉�
 - **原因**: Dockerfile暴露8080端口，但应用运行在3002端口
 - **解决方案**: 统一端口配置为3002
 
+#### 实体类扫描配置问题 ✅
+- **问题**: BeanCreationException - User实体类不是被管理的类型
+- **原因**: @EntityScan只配置了entity包，但User类在model包中
+- **解决方案**: 
+  - 更新@EntityScan配置同时扫描entity和model包
+  - 确保所有JPA实体类都被正确扫描和管理
+
+#### 环境变量配置统一问题 ✅
+- **问题**: VSS-backend子项目和主项目的环境变量配置不一致
+- **原因**: 两个项目使用不同的数据库凭据配置
+- **解决方案**:
+  - 统一使用主项目的.env文件配置
+  - 确保所有服务使用一致的环境变量
+
 ## 当前系统状态
 
 ### 运行中的服务 ✅
 ```
-✅ vss-nginx-proxy (Nginx) - 端口80
-✅ vss-frontend (React) - 端口3000
-✅ vss-backend (Spring Boot) - 端口3002
-✅ vss-database (PostgreSQL) - 端口5432
-✅ vss-redis (Redis) - 端口6379
-✅ vss-yolo-inference (Python) - 端口8084
-✅ vss-data-analysis-server (Python) - 端口8086
-✅ vss-script-orchestration-server (Python) - 端口8087
-✅ vss-net-framework-server (.NET) - 端口8085
+✅ vss-nginx-proxy (Nginx) - 端口80 (healthy)
+✅ vss-frontend (React) - 端口3000 (healthy)
+✅ vss-backend (Spring Boot) - 端口3002 (running)
+✅ vss-database (PostgreSQL) - 端口5432 (healthy)
+✅ vss-redis (Redis) - 端口6379 (healthy)
+🔄 vss-yolo-inference (Python) - 端口8084 (restarting)
+⏸️ vss-data-analysis-server (Python) - 端口8086 (未启动)
+⏸️ vss-script-orchestration-server (Python) - 端口8087 (未启动)
+⏸️ vss-net-framework-server (.NET) - 端口8085 (未启动)
 ```
+
+### 系统架构验证 ✅
+- [x] 统一入口点: http://localhost (Nginx代理)
+- [x] 前端应用路由: / → frontend:80
+- [x] API接口路由: /api/ → backend:3002/api/
+- [x] 健康检查路由: /actuator/ → backend:3002/actuator/
+- [x] 服务间网络通信正常 (vss-network)
+- [x] 数据库连接池配置正常 (HikariCP)
+- [x] Redis缓存连接正常
 
 ### 验证的功能 ✅
 - [x] 前端应用访问: http://localhost
