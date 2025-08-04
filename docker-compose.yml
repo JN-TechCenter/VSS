@@ -101,8 +101,8 @@ services:
       - DB_HOST=database
       - DB_PORT=5432
       - DB_NAME=${DB_NAME:-vss_production_db}
-      - DB_USERNAME=vss_app_user
-      - DB_PASSWORD=vss_app_password
+      - DB_USERNAME=${DB_USERNAME:-prod_user}
+      - DB_PASSWORD=${DB_PASSWORD:-prod_password}
       - DB_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-50}
       - DB_CONNECTION_TIMEOUT=${DB_CONNECTION_TIMEOUT:-10000}
       
